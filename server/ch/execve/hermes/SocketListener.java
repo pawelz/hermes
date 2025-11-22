@@ -27,9 +27,11 @@ public class SocketListener {
 
     private static final int BUFFER_SIZE = 4096;
     private final String socketPath;
+    private final Dispatcher dispatcher;
 
     public SocketListener(String socketPath) {
         this.socketPath = socketPath;
+        this.dispatcher = new Dispatcher();
     }
 
     /** Starts the service listening on the Unix socket. */
@@ -69,7 +71,7 @@ public class SocketListener {
         }
     }
 
-    private static void handleClient(SocketChannel clientChannel) throws IOException {
+    void handleClient(SocketChannel clientChannel) throws IOException {
         // Use a StringBuilder to collect the entire email content
         StringBuilder emailContent = new StringBuilder();
         ByteBuffer buffer = ByteBuffer.allocate(BUFFER_SIZE);
@@ -85,7 +87,8 @@ public class SocketListener {
         
         // Just a placeholder while I am figuring out the connectivity part.
         System.out.println("Received:\n" + rawEmail + "\n");
-        String response = String.valueOf(rawEmail.length());
+        String response = dispatcher.dispatch(rawEmail);
+
         ByteBuffer responseBuffer = ByteBuffer.wrap(response.getBytes());
 
         clientChannel.write(responseBuffer);

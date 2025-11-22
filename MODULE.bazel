@@ -3,5 +3,15 @@ module(
     version = "0.0.1",
 )
 
-bazel_dep(name = "rules_java", version = "7.6.1")
+bazel_dep(name = "rules_java", version = "8.14.0")
 bazel_dep(name = "rules_cc", version = "0.2.9")
+
+bazel_dep(name = "rules_jvm_external", version = "6.3")
+maven = use_extension("@rules_jvm_external//:extensions.bzl", "maven")
+maven.install(
+    artifacts = [
+        "com.google.guava:guava:33.2.1-jre",
+    ],
+    repositories = ["https://repo1.maven.org/maven2"],
+)
+use_repo(maven, "maven")
