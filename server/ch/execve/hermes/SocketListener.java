@@ -23,7 +23,7 @@ import java.nio.channels.SocketChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-public class SocketListener {
+class SocketListener {
 
     private static final int BUFFER_SIZE = 4096;
     private final String socketPath;
