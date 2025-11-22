@@ -28,3 +28,6 @@ bazel-*
 
 # private testing data
 testdata/
+
+# runtime litter
+*.sock
