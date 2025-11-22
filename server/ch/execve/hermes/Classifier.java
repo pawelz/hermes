@@ -14,6 +14,8 @@
 
 package ch.execve.hermes;
 
+import jakarta.mail.Message;
+
 public interface Classifier {
-    boolean classify(String email);
+    boolean classify(Message email);
 }

@@ -6,6 +6,8 @@ java_binary(
     main_class = "ch.execve.hermes.HermesServer",
     visibility = ["//visibility:public"],
     deps = [
+        "@maven//:jakarta_mail_jakarta_mail_api",
+        "@maven//:org_eclipse_angus_angus_mail",
         "@maven//:com_google_guava_guava",
     ],
 )

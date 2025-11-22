@@ -14,24 +14,35 @@
 
 package ch.execve.hermes;
 
+import jakarta.mail.Message;
+import jakarta.mail.MessagingException;
+import jakarta.mail.Session;
+import jakarta.mail.internet.MimeMessage;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.StandardProtocolFamily;
 import java.net.UnixDomainSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Properties;
 
 class SocketListener {
 
     private static final int BUFFER_SIZE = 4096;
     private final String socketPath;
     private final Dispatcher dispatcher;
+    private final Session session;
 
     public SocketListener(String socketPath) {
         this.socketPath = socketPath;
         this.dispatcher = new Dispatcher();
+        this.session = Session.getDefaultInstance(new Properties());
     }
 
     /** Starts the service listening on the Unix socket. */
@@ -72,24 +83,29 @@ class SocketListener {
     }
 
     void handleClient(SocketChannel clientChannel) throws IOException {
-        // Use a StringBuilder to collect the entire email content
-        StringBuilder emailContent = new StringBuilder();
+        // Use a ByteArrayOutputStream to collect the raw bytes of the email
+        ByteArrayOutputStream emailBytes = new ByteArrayOutputStream();
         ByteBuffer buffer = ByteBuffer.allocate(BUFFER_SIZE);
         
-        // 1. Read the incoming data stream until EOF (Go client calls CloseWrite())
+        // 1. Read the incoming data stream until EOF (client calls shutdown(SHUT_WR))
         while (clientChannel.read(buffer) > 0) {
             buffer.flip(); // Prepare buffer for reading
-            emailContent.append(new String(buffer.array(), 0, buffer.limit()));
+            byte[] data = new byte[buffer.remaining()];
+            buffer.get(data);
+            emailBytes.write(data);
             buffer.clear(); // Prepare buffer for writing
         }
 
-        String rawEmail = emailContent.toString();
-        
-        // Just a placeholder while I am figuring out the connectivity part.
-        System.out.println("Received:\n" + rawEmail + "\n");
-        String response = dispatcher.dispatch(rawEmail);
+        String response;
+        try (InputStream emailStream = new ByteArrayInputStream(emailBytes.toByteArray())) {
+            Message message = new MimeMessage(session, emailStream);
+            response = dispatcher.dispatch(message);
+        } catch (MessagingException e) {
+            System.err.println("Failed to parse email: " + e.getMessage());
+            response = "INBOX.hermes-error";
+        }
 
-        ByteBuffer responseBuffer = ByteBuffer.wrap(response.getBytes());
+        ByteBuffer responseBuffer = ByteBuffer.wrap(response.getBytes(StandardCharsets.UTF_8));
 
         clientChannel.write(responseBuffer);
     }

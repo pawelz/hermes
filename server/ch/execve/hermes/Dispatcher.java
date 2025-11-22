@@ -15,6 +15,8 @@
 package ch.execve.hermes;
 
 import com.google.common.collect.ImmutableMap;
+import jakarta.mail.MessagingException;
+import jakarta.mail.Message;
 
 /** Dispatches email to Classifiers. */
 class Dispatcher {
@@ -24,8 +26,16 @@ class Dispatcher {
         this.classifiers = ImmutableMap.of();
     }
 
-    String dispatch(String email) {
-        // The default fallback.
-        return "INBOX";
+    String dispatch(Message message) {
+        try {
+            // For now, let's just return the subject as a proof of concept.
+            String subject = message.getSubject();
+            System.out.println("Parsed email with subject: " + subject);
+            return "INBOX";
+        } catch (MessagingException e) {
+            // This is less likely to happen here now, but good to keep.
+            System.err.println("Failed to read message properties: " + e.getMessage());
+            return "INBOX.hermes-error";
+        }
     }
 }
