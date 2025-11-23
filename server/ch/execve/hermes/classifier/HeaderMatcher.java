@@ -9,12 +9,15 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class HeaderMatcher implements Classifier {
 
-    private final ImmutableList<Rule> rules;
+    private record CompiledRule(String header, ImmutableList<Pattern> patterns) {}
+    private final ImmutableList<CompiledRule> rules;
     private static final Logger logger = LoggerFactory.getLogger(HeaderMatcher.class);
 
     public HeaderMatcher(String rulesPath) {
@@ -22,7 +25,11 @@ public class HeaderMatcher implements Classifier {
         mapper.enable(JsonParser.Feature.ALLOW_YAML_COMMENTS);
         try {
             byte[] jsonData = Files.readAllBytes(Paths.get(rulesPath));
-            this.rules = ImmutableList.copyOf(mapper.readValue(jsonData, new TypeReference<List<Rule>>() {}));
+            List<Rule> loadedRules = mapper.readValue(jsonData, new TypeReference<>() {});
+            this.rules = loadedRules.stream()
+                .map(rule -> new CompiledRule(rule.header(), rule.regex().stream()
+                    .map(Pattern::compile).collect(ImmutableList.toImmutableList())))
+                .collect(ImmutableList.toImmutableList());
             logger.info("Successfully loaded {} rules from {}", this.rules.size(), rulesPath);
         } catch (IOException e) {
             throw new IllegalArgumentException("Could not read or parse JSON rules file: " + rulesPath, e);
@@ -31,7 +38,7 @@ public class HeaderMatcher implements Classifier {
 
     @Override
     public boolean classify(Message email) {
-        for (Rule rule : rules) {
+        for (CompiledRule rule : rules) {
             String[] headerValues;
             try {
                 headerValues = email.getHeader(rule.header());
@@ -42,9 +49,11 @@ public class HeaderMatcher implements Classifier {
             if (headerValues == null) {
                 continue;
             }
-            for (String re : rule.regex()) {
+            for (Pattern pattern : rule.patterns()) {
                 for (String headerValue : headerValues) {
-                    if (headerValue.matches(re)) return true;
+                    if (pattern.matcher(headerValue).find()) {
+                        return true;
+                    }
                 }
             }
         }
