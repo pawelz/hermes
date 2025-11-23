@@ -14,10 +14,20 @@
 
 package ch.execve.hermes;
 
+import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 
 /** A JCommander configuration for command line arguments. */
 public class CommandLineArgs {
+    public static CommandLineArgs getFlags(String[] args) {
+        var flags = new CommandLineArgs();
+        JCommander.newBuilder()
+            .addObject(flags)
+            .build()
+            .parse(args);
+        return flags;
+    }
+
     @Parameter(names = "--rules-dir", description = "Base directory for matcher configuration files")
     private String rulesDir = ".";
 
@@ -31,4 +41,6 @@ public class CommandLineArgs {
     public String getSocketPath() {
         return socketPath;
     }
+
+    private CommandLineArgs() {}
 }
