@@ -34,10 +34,13 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Properties;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Singleton
 class SocketListener {
 
+    private static final Logger logger = LoggerFactory.getLogger(SocketListener.class);
     private static final int BUFFER_SIZE = 4096;
     private final String socketPath;
     private final Dispatcher dispatcher;
@@ -64,20 +67,20 @@ class SocketListener {
 
         try (ServerSocketChannel serverChannel = ServerSocketChannel.open(StandardProtocolFamily.UNIX)) {
             serverChannel.bind(address);
-            System.out.println("Hermes Server listening on: " + socket);
+            logger.info("Hermes Server listening on: {}", socket);
 
             while (true) {
                 // Blocks until a client (the Go binary) connects
                 try (SocketChannel clientChannel = serverChannel.accept()) {
-                    System.out.println("Client connected. Processing email...");
+                    logger.info("Client connected. Processing email...");
                     handleClient(clientChannel);
                 } catch (IOException e) {
-                    System.err.println("Error handling client connection: " + e.getMessage());
+                    logger.error("Error handling client connection", e);
                 }
             }
 
         } catch (Throwable e) {
-            System.err.println("Failed to start server: " + e.getMessage());
+            logger.error("Failed to start server", e);
             // Re-create the socket file to ensure correct permissions/ownership if needed for production
             try {
                 Files.deleteIfExists(socket);
@@ -106,7 +109,7 @@ class SocketListener {
             Message message = new MimeMessage(session, emailStream);
             response = dispatcher.dispatch(message);
         } catch (MessagingException e) {
-            System.err.println("Failed to parse email: " + e.getMessage());
+            logger.error("Failed to parse email", e);
             response = "INBOX.hermes-error";
         }
 

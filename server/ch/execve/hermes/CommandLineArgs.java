@@ -34,12 +34,19 @@ public class CommandLineArgs {
     @Parameter(names = "--socket-path", description = "Path for the Unix domain socket")
     private String socketPath = "hermes.sock";
 
+    @Parameter(names = "--log-file", description = "Path to log file. If not specified, logs to stdout.")
+    private String logFile = null;
+
     public String getRulesDir() {
         return rulesDir;
     }
 
     public String getSocketPath() {
         return socketPath;
+    }
+
+    public String getLogFile() {
+        return logFile;
     }
 
     private CommandLineArgs() {}

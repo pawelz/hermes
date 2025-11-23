@@ -26,10 +26,13 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /** Dispatches email to Classifiers. */
 class Dispatcher {
     private final ImmutableMap<Classifier, String> classifiers;
+    private static final Logger logger = LoggerFactory.getLogger(Dispatcher.class);
 
     @Inject
     Dispatcher(@Named("rulesDir") String rulesDir) {
@@ -40,7 +43,7 @@ class Dispatcher {
         try {
             List<ClassifierConfig> configs = mapper.readValue(configFile, new TypeReference<List<ClassifierConfig>>() {});
             for (var config : configs) {
-                System.out.println("Loading classifier: " + config.name());
+                logger.info("Loading classifier: {}", config.name());
                 // Use reflection to instantiate the specified classifier class
                 var implementation = Class.forName(config.implementation());
                 var constructor = implementation.getConstructor(String.class);
@@ -65,15 +68,14 @@ class Dispatcher {
                 .findFirst()
                 .map(classifiers::get)
                 .orElse("INBOX");
-            System.out.println(
-                String.format(
-                    "Classified message from '%s', subject '%s' as '%s'", 
-                    message.getFrom()[0],
-                    message.getSubject(),
-                    messageClass));
+            logger.info(
+                "Classified message from '{}', subject '{}' as '{}'",
+                message.getFrom()[0],
+                message.getSubject(),
+                messageClass);
             return messageClass;
         } catch (MessagingException e) {
-            System.err.println("Failed to read message properties: " + e.getMessage());
+            logger.error("Failed to read message properties", e);
             return "INBOX.hermes-error";
         }
     }

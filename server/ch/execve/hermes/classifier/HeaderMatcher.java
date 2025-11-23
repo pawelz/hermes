@@ -9,10 +9,13 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class HeaderMatcher implements Classifier {
 
     private final ImmutableList<Rule> rules;
+    private static final Logger logger = LoggerFactory.getLogger(HeaderMatcher.class);
 
     public HeaderMatcher(String rulesPath) {
         ObjectMapper mapper = new ObjectMapper();
@@ -20,7 +23,7 @@ public class HeaderMatcher implements Classifier {
         try {
             byte[] jsonData = Files.readAllBytes(Paths.get(rulesPath));
             this.rules = ImmutableList.copyOf(mapper.readValue(jsonData, new TypeReference<List<Rule>>() {}));
-            System.out.println("Successfully loaded " + this.rules.size() + " rules from JSON.");
+            logger.info("Successfully loaded {} rules from {}", this.rules.size(), rulesPath);
         } catch (IOException e) {
             throw new IllegalArgumentException("Could not read or parse JSON rules file: " + rulesPath, e);
         }
@@ -33,7 +36,7 @@ public class HeaderMatcher implements Classifier {
             try {
                 headerValues = email.getHeader(rule.header());
             } catch (jakarta.mail.MessagingException e) {
-                // TODO: error logging
+                logger.warn("Could not read header '{}' from email", rule.header(), e);
                 continue; // Skip this rule if header can't be read
             }
             if (headerValues == null) {

@@ -10,5 +10,6 @@ java_library(
         "@maven//:com_fasterxml_jackson_core_jackson_databind",
         "@maven//:com_google_guava_guava",
         "@maven//:jakarta_mail_jakarta_mail_api",
+        "@maven//:org_slf4j_slf4j_api",
     ],
 )
