@@ -68,7 +68,7 @@ int main(int argc, char **argv) {
         perror("recv error");
     } else if (response_bytes > 0) {
         response_buffer[response_bytes] = '\0'; // Null-terminate the received data
-        printf("Server response: %s\n", response_buffer);
+        puts(response_buffer);
     }
 
     close(sockfd);
