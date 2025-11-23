@@ -14,6 +14,9 @@
 
 package ch.execve.hermes;
 
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
 import jakarta.mail.Message;
 import jakarta.mail.MessagingException;
 import jakarta.mail.Session;
@@ -32,14 +35,16 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Properties;
 
+@Singleton
 class SocketListener {
 
     private static final int BUFFER_SIZE = 4096;
     private final String socketPath;
     private final Dispatcher dispatcher;
     private final Session session;
-
-    public SocketListener(String socketPath, Dispatcher dispatcher) {
+    
+    @Inject
+    public SocketListener(@Named("socketPath") String socketPath, Dispatcher dispatcher) {
         this.socketPath = socketPath;
         this.dispatcher = dispatcher;
         this.session = Session.getDefaultInstance(new Properties());

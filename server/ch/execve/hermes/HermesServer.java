@@ -15,6 +15,8 @@
 package ch.execve.hermes;
 
 import com.beust.jcommander.JCommander;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
 import java.io.IOException;
 import java.util.Arrays;
 
@@ -31,11 +33,12 @@ public class HermesServer {
         System.out.println("Using socket path: " + cmdArgs.getSocketPath());
         System.out.println("Using rules directory: " + cmdArgs.getRulesDir());
 
-        // 2. Use the parsed arguments to create the application components.
-        // The rules directory is passed to the Dispatcher.
-        Dispatcher dispatcher = new Dispatcher(cmdArgs.getRulesDir());
-        // 3. The socket path and the configured dispatcher are passed to the SocketListener.
-        SocketListener socketListener = new SocketListener(cmdArgs.getSocketPath(), dispatcher);
+        // 2. Create an injector with our module, which holds the command line args.
+        Injector injector = Guice.createInjector(new HermesModule(cmdArgs));
+
+        // 3. Get the top-level object from the injector. Guice will build the entire
+        // dependency graph (SocketListener -> Dispatcher -> rulesDir).
+        SocketListener socketListener = injector.getInstance(SocketListener.class);
         socketListener.start();
     }
 }

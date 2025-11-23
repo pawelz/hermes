@@ -18,14 +18,16 @@ import com.google.common.collect.ImmutableMap;
 
 import ch.execve.hermes.classifier.Classifier;
 import ch.execve.hermes.classifier.HeaderMatcher;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
 import jakarta.mail.MessagingException;
 import jakarta.mail.Message;
 
 /** Dispatches email to Classifiers. */
 class Dispatcher {
     ImmutableMap<Classifier, String> classifiers;
-
-    Dispatcher(String rulesDir) {
+    @Inject
+    Dispatcher(@Named("rulesDir") String rulesDir) {
         this.classifiers = ImmutableMap.<Classifier, String>builder()
             .put(new HeaderMatcher(rulesDir + "/spam.json"), "spam/garbage")
             .build();
