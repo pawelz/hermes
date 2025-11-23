@@ -1,0 +1,9 @@
+# Use Java 25 for compiling user code
+build --java_language_version=25
+
+# Use Java 25 for running the code
+build --java_runtime_version=remotejdk_25
+
+# Optional: If you need Java 25 to run the compiler itself (rare, usually not needed)
+build --tool_java_language_version=25
+build --tool_java_runtime_version=remotejdk_25

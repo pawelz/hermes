@@ -14,21 +14,28 @@
 
 package ch.execve.hermes;
 
+import com.beust.jcommander.JCommander;
 import java.io.IOException;
 import java.util.Arrays;
 
 public class HermesServer {
 
     public static void main(String[] args) throws IOException {
-        System.out.println("boop");
+        // 1. Define and parse all command line arguments.
+        CommandLineArgs cmdArgs = new CommandLineArgs();
+        JCommander.newBuilder()
+            .addObject(cmdArgs)
+            .build()
+            .parse(args);
+        
+        System.out.println("Using socket path: " + cmdArgs.getSocketPath());
+        System.out.println("Using rules directory: " + cmdArgs.getRulesDir());
 
-        System.out.println(Arrays.toString(args));
-        String socketPath = "hermes.sock";
-        if (args.length > 0) {
-            socketPath = args[0];
-        }
-    
-        SocketListener socketListener = new SocketListener(socketPath);
+        // 2. Use the parsed arguments to create the application components.
+        // The rules directory is passed to the Dispatcher.
+        Dispatcher dispatcher = new Dispatcher(cmdArgs.getRulesDir());
+        // 3. The socket path and the configured dispatcher are passed to the SocketListener.
+        SocketListener socketListener = new SocketListener(cmdArgs.getSocketPath(), dispatcher);
         socketListener.start();
     }
 }

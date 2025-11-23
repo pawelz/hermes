@@ -1,0 +1,18 @@
+# This is an example config for the HeaderMatcher.
+# It will match if any regex for any header matches the email.
+[
+  {
+    "header": "From",
+    "regex": [
+      "evil_spammer@example.com",
+      ".*@example.org"
+    ]
+  },
+  {
+    "header": "Subject",
+    "regex": [
+      ".*[Vv][1Iil][Aa4][Gg][Rr][Aa4].*",
+      ".*1[ .-]?000[ .-]?000 ?(\\$|USD|CHF|EUR).*"
+    ]
+  }
+]

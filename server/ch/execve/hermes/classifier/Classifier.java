@@ -12,10 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package ch.execve.hermes;
+package ch.execve.hermes.classifier;
 
 import jakarta.mail.Message;
 
+@FunctionalInterface
 public interface Classifier {
     boolean classify(Message email);
 }

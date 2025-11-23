@@ -39,9 +39,9 @@ class SocketListener {
     private final Dispatcher dispatcher;
     private final Session session;
 
-    public SocketListener(String socketPath) {
+    public SocketListener(String socketPath, Dispatcher dispatcher) {
         this.socketPath = socketPath;
-        this.dispatcher = new Dispatcher();
+        this.dispatcher = dispatcher;
         this.session = Session.getDefaultInstance(new Properties());
     }
 
