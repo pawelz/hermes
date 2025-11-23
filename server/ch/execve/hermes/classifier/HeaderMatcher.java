@@ -14,8 +14,6 @@ public class HeaderMatcher implements Classifier {
 
     private final ImmutableList<Rule> rules;
 
-    private record Rule(String header, List<String> regex) {}
-
     public HeaderMatcher(String rulesPath) {
         ObjectMapper mapper = new ObjectMapper();
         mapper.enable(JsonParser.Feature.ALLOW_YAML_COMMENTS);

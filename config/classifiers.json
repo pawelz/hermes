@@ -1,0 +1,7 @@
+[
+  {
+    "name": "spam",
+    "implementation": "ch.execve.hermes.classifier.HeaderMatcher",
+    "destination": "spam"
+  }
+]

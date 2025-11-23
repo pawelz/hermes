@@ -5,6 +5,7 @@ java_library(
     srcs = glob(["*.java"]),
     visibility = ["//server/ch/execve/hermes:__pkg__"],
     deps = [
+        "@maven//:com_fasterxml_jackson_core_jackson_annotations",
         "@maven//:com_fasterxml_jackson_core_jackson_core",
         "@maven//:com_fasterxml_jackson_core_jackson_databind",
         "@maven//:com_google_guava_guava",
