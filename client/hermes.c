@@ -18,6 +18,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <sys/time.h>
 
 int main(int argc, char **argv) {
     if (argc != 2) {
@@ -43,6 +44,16 @@ int main(int argc, char **argv) {
     if (connect(sockfd, (struct sockaddr*)&addr, sizeof(addr)) == -1) {
         fprintf(stderr, "connect error (%s): ", socket_path);
         perror(NULL);
+        return 1;
+    }
+
+    // Set a 3-second timeout for receiving data.
+    struct timeval tv;
+    tv.tv_sec = 3;
+    tv.tv_usec = 0;
+    if (setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv)) < 0) {
+        perror("setsockopt failed");
+        close(sockfd);
         return 1;
     }
 
