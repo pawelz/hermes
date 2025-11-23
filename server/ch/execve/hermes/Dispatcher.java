@@ -72,10 +72,12 @@ class Dispatcher {
                 .findFirst()
                 .map(classifiers::get)
                 .orElse("INBOX");
+            var from = message.getFrom() != null ? message.getFrom()[0] : "<null>";
+            var subject = message.getSubject() != null ? message.getSubject() : "<null>";
             logger.info(
                 "Classified message from '{}', subject '{}' as '{}'",
-                message.getFrom()[0],
-                message.getSubject(),
+                from,
+                subject,
                 messageClass);
             return messageClass;
         } catch (MessagingException e) {
