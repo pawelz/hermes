@@ -7,6 +7,7 @@ java_binary(
     visibility = ["//visibility:public"],
     deps = [
         "//server/ch/execve/hermes/classifier",
+        "//server/ch/execve/hermes/classifier:classifier_impl",
         "@maven//:ch_qos_logback_logback_classic",
         "@maven//:ch_qos_logback_logback_core",
         "@maven//:com_beust_jcommander",
