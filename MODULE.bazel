@@ -26,6 +26,7 @@ maven.install(
         "jakarta.inject:jakarta.inject-api:2.0.1",
         "org.slf4j:slf4j-api:2.0.13",
         "ch.qos.logback:logback-classic:1.5.6",
+        "org.xerial:sqlite-jdbc:3.45.3.0",
     ],
     repositories = ["https://repo1.maven.org/maven2"],
 )

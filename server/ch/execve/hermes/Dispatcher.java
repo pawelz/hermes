@@ -29,14 +29,17 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import java.util.Optional;
 
 /** Dispatches email to Classifiers. */
 class Dispatcher {
     private final ImmutableMap<Classifier, String> classifiers;
+    private final DatabaseLogger dbLogger;
     private static final Logger logger = LoggerFactory.getLogger(Dispatcher.class);
 
     @Inject
-    Dispatcher(@Named("configDir") String configDir) {
+    Dispatcher(@Named("configDir") String configDir, DatabaseLogger dbLogger) {
+        this.dbLogger = dbLogger;
         var builder = ImmutableMap.<Classifier, String>builder();
         var mapper = new ObjectMapper()
             .enable(JsonParser.Feature.ALLOW_YAML_COMMENTS);
@@ -65,24 +68,40 @@ class Dispatcher {
 
     String dispatch(Message message) {
         try {
-            var messageClass = classifiers
+            Optional<Classifier> matchingClassifier = classifiers
                 .keySet()
                 .stream()
                 .filter(c -> c.classify(message))
-                .findFirst()
-                .map(classifiers::get)
-                .orElse("INBOX");
-            var from = message.getFrom() != null ? message.getFrom()[0] : "<null>";
-            var subject = message.getSubject() != null ? message.getSubject() : "<null>";
+                .findFirst();
+
+            String returnedInboxPath = matchingClassifier.map(classifiers::get).orElse("INBOX");
+            String classifierName = matchingClassifier.map(c -> c.getClass().getName()).orElse("none");
+
+            // Safely get headers for logging
+            String messageId = getHeader(message, "Message-ID").orElse("<null>");
+            String returnPath = getHeader(message, "Return-Path").orElse("<null>");
+            String from = getHeader(message, "From").orElse("<null>");
+            String subject = getHeader(message, "Subject").orElse("<null>");
+
+            dbLogger.log(messageId, returnPath, from, subject, classifierName, returnedInboxPath);
+
             logger.info(
                 "Classified message from '{}', subject '{}' as '{}'",
                 from,
                 subject,
-                messageClass);
-            return messageClass;
+                returnedInboxPath);
+            return returnedInboxPath;
         } catch (MessagingException e) {
             logger.error("Failed to read message properties", e);
             return "INBOX.hermes-error";
         }
+    }
+
+    private Optional<String> getHeader(Message message, String name) throws MessagingException {
+        String[] headers = message.getHeader(name);
+        if (headers != null && headers.length > 0) {
+            return Optional.of(headers[0]);
+        }
+        return Optional.empty();
     }
 }

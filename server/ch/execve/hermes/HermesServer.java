@@ -63,6 +63,7 @@ public class HermesServer {
         final Logger logger = LoggerFactory.getLogger(HermesServer.class);
 
         logger.info("Using config directory: {}", flags.getConfigDir());
+        logger.info("Using database path: {}", flags.getDatabasePath());
 
         Injector injector = Guice.createInjector(new HermesModule(flags));
         SocketListener socketListener = injector.getInstance(SocketListener.class);

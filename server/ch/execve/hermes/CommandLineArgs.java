@@ -37,6 +37,9 @@ public class CommandLineArgs {
     @Parameter(names = "--log-file", description = "Path to log file. If not specified, logs to stdout.")
     private String logFile = null;
 
+    @Parameter(names = "--database-path", description = "Path for the SQLite database file")
+    private String databasePath = "hermes_log.db";
+
     public String getConfigDir() {
         return configDir;
     }
@@ -47,6 +50,10 @@ public class CommandLineArgs {
 
     public String getLogFile() {
         return logFile;
+    }
+
+    public String getDatabasePath() {
+        return databasePath;
     }
 
     private CommandLineArgs() {}

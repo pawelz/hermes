@@ -19,5 +19,6 @@ java_binary(
         "@maven//:jakarta_mail_jakarta_mail_api",
         "@maven//:org_eclipse_angus_angus_mail",
         "@maven//:org_slf4j_slf4j_api",
+        "@maven//:org_xerial_sqlite_jdbc",
     ],
 )
