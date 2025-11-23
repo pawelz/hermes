@@ -35,10 +35,10 @@ class Dispatcher {
     private static final Logger logger = LoggerFactory.getLogger(Dispatcher.class);
 
     @Inject
-    Dispatcher(@Named("rulesDir") String rulesDir) {
+    Dispatcher(@Named("configDir") String configDir) {
         var builder = ImmutableMap.<Classifier, String>builder();
         var mapper = new ObjectMapper();
-        var configFile = new File(rulesDir, "classifiers.json");
+        var configFile = new File(configDir, "classifiers.json");
 
         try {
             List<ClassifierConfig> configs = mapper.readValue(configFile, new TypeReference<List<ClassifierConfig>>() {});
@@ -47,7 +47,7 @@ class Dispatcher {
                 // Use reflection to instantiate the specified classifier class
                 var implementation = Class.forName(config.implementation());
                 var constructor = implementation.getConstructor(String.class);
-                var classifierPath = new File(rulesDir, config.name() + ".json").getAbsolutePath();
+                var classifierPath = new File(configDir, config.name() + ".json").getAbsolutePath();
                 var classifierInstance = (Classifier) constructor.newInstance(classifierPath);
                 builder.put(classifierInstance, config.destination());
             }

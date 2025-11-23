@@ -28,8 +28,8 @@ public class CommandLineArgs {
         return flags;
     }
 
-    @Parameter(names = "--rules-dir", description = "Base directory for matcher configuration files")
-    private String rulesDir = ".";
+    @Parameter(names = "--config-dir", description = "Base directory for configuration files")
+    private String configDir = ".";
 
     @Parameter(names = "--socket-path", description = "Path for the Unix domain socket")
     private String socketPath = "hermes.sock";
@@ -37,8 +37,8 @@ public class CommandLineArgs {
     @Parameter(names = "--log-file", description = "Path to log file. If not specified, logs to stdout.")
     private String logFile = null;
 
-    public String getRulesDir() {
-        return rulesDir;
+    public String getConfigDir() {
+        return configDir;
     }
 
     public String getSocketPath() {

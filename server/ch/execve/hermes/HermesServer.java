@@ -15,7 +15,6 @@
 package ch.execve.hermes;
 
 import ch.qos.logback.classic.Level;
-import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.classic.encoder.PatternLayoutEncoder;
 import ch.qos.logback.classic.spi.ILoggingEvent;
@@ -24,6 +23,7 @@ import ch.qos.logback.core.FileAppender;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import java.io.IOException;
+import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class HermesServer {
@@ -37,7 +37,7 @@ public class HermesServer {
         encoder.setPattern("%d{YYYY-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n");
         encoder.start();
 
-        Logger rootLogger = loggerContext.getLogger(Logger.ROOT_LOGGER_NAME);
+        ch.qos.logback.classic.Logger rootLogger = loggerContext.getLogger(Logger.ROOT_LOGGER_NAME);
         rootLogger.setLevel(Level.INFO);
 
         if (logFile == null) {
@@ -57,9 +57,12 @@ public class HermesServer {
     }
 
     public static void main(String[] args) throws IOException {
-        System.out.println("boop");
+        System.out.println("boop"); // A polite way to greet the user.
         CommandLineArgs flags = CommandLineArgs.getFlags(args);
         configureLogging(flags.getLogFile());
+        final Logger logger = LoggerFactory.getLogger(HermesServer.class);
+
+        logger.info("Using config directory: {}", flags.getConfigDir());
 
         Injector injector = Guice.createInjector(new HermesModule(flags));
         SocketListener socketListener = injector.getInstance(SocketListener.class);

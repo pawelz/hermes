@@ -31,6 +31,6 @@ public class HermesModule extends AbstractModule {
     protected void configure() {
         // Bind the values from the command line flags to named annotations.
         bind(String.class).annotatedWith(Names.named("socketPath")).toInstance(args.getSocketPath());
-        bind(String.class).annotatedWith(Names.named("rulesDir")).toInstance(args.getRulesDir());
+        bind(String.class).annotatedWith(Names.named("configDir")).toInstance(args.getConfigDir());
     }
 }
