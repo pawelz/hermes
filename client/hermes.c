@@ -20,8 +20,6 @@
 #include <unistd.h>
 
 int main(int argc, char **argv) {
-    printf("boop\n");
-
     if (argc != 2) {
         printf("Usage: %s socket\n", argv[0]);
         return 1;
