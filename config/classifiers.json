@@ -3,5 +3,10 @@
     "name": "spam",
     "implementation": "ch.execve.hermes.classifier.HeaderMatcher",
     "destination": "spam"
+  },
+  {
+    "name": "alpacas",
+    "implementation": "ch.execve.hermes.classifier.HeaderMatcher",
+    "destination": "important"
   }
 ]

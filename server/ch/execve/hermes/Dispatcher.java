@@ -15,6 +15,7 @@
 package ch.execve.hermes;
 
 import com.google.common.collect.ImmutableMap;
+import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import ch.execve.hermes.classifier.Classifier;
@@ -37,11 +38,14 @@ class Dispatcher {
     @Inject
     Dispatcher(@Named("configDir") String configDir) {
         var builder = ImmutableMap.<Classifier, String>builder();
-        var mapper = new ObjectMapper();
+        var mapper = new ObjectMapper()
+            .enable(JsonParser.Feature.ALLOW_YAML_COMMENTS);
         var configFile = new File(configDir, "classifiers.json");
 
         try {
             List<ClassifierConfig> configs = mapper.readValue(configFile, new TypeReference<List<ClassifierConfig>>() {});
+            logger.info("Found {} classifier configurations.", configs.size());
+
             for (var config : configs) {
                 logger.info("Loading classifier: {}", config.name());
                 // Use reflection to instantiate the specified classifier class

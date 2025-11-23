@@ -1,0 +1,18 @@
+# This is an example config for the HeaderMatcher.
+# It will match if any regex for any header matches the email.
+[
+  {
+    "header": "From",
+    "regex": [
+      ".*alpaca.*",
+      ".*llama.*"
+    ]
+  },
+  {
+    "header": "Subject",
+    "regex": [
+      ".*[Aa]lpaca.*",
+      ".*[Ll]lama.*"
+    ]
+  }
+]
