@@ -16,17 +16,21 @@
 #include <sys/socket.h>
 #include <sys/un.h>
 #include <stdlib.h>
-#include <string.h>
 #include <unistd.h>
+#include <string.h>
 #include <sys/time.h>
 
+#include "libmaildir.h"
+
+
 int main(int argc, char **argv) {
-    if (argc != 2) {
-        printf("Usage: %s socket\n", argv[0]);
+    if (argc != 3) {
+        printf("Usage: %s socket maildir\n", argv[0]);
         return 1;
     }
 
     char *socket_path = argv[1];
+    char *maildir_path = argv[2];
 
     int sockfd;
     struct sockaddr_un addr;
@@ -47,7 +51,8 @@ int main(int argc, char **argv) {
         return 1;
     }
 
-    // Set a 3-second timeout for receiving data.
+    // Set a 3-second timeout for receiving data. This is just not to avoid
+    // deadlocks or otherwise the Java code getting stuck.
     struct timeval tv;
     tv.tv_sec = 3;
     tv.tv_usec = 0;
@@ -57,33 +62,65 @@ int main(int argc, char **argv) {
         return 1;
     }
 
-    char *buffer = NULL;
-    size_t buffer_size = 0;
-    ssize_t bytes_read;
-
-    while ((bytes_read = getline(&buffer, &buffer_size, stdin)) != -1) {
-        if (send(sockfd, buffer, bytes_read, 0) == -1) {
-            perror("send error");
-        }
-        free(buffer);
-        buffer = NULL;
+    // 1. Read the entire email from stdin into a buffer.
+    char *email_buffer = NULL;
+    size_t email_buffer_size = 0;
+    FILE *email_stream = open_memstream(&email_buffer, &email_buffer_size);
+    if (email_stream == NULL) {
+        perror("open_memstream failed");
+        return 1;
     }
 
-    // shutdown closes the "write" part of the connection, so that the server
-    // knows that we are done and can send us a response.
+    char *line_buffer = NULL;
+    size_t line_buffer_size = 0;
+    ssize_t bytes_read;
+    while ((bytes_read = getline(&line_buffer, &line_buffer_size, stdin)) != -1) {
+        fwrite(line_buffer, 1, bytes_read, email_stream);
+    }
+    fclose(email_stream);
+    free(line_buffer);
+
+    // 2. Send the buffered email to the server.
+    if (send(sockfd, email_buffer, email_buffer_size, 0) == -1) {
+        perror("send error");
+        close(sockfd);
+        free(email_buffer);
+        return 1;
+    }
+
+    // 3. Shutdown the "write" part of the connection.
     shutdown(sockfd, SHUT_WR);
 
+    // 4. Receive the destination path from the server.
     char response_buffer[1024];
     ssize_t response_bytes = recv(sockfd, response_buffer, sizeof(response_buffer) - 1, 0);
     if (response_bytes == -1) {
         perror("recv error");
     } else if (response_bytes > 0) {
-        response_buffer[response_bytes] = '\0'; // Null-terminate the received data
-        puts(response_buffer);
+        response_buffer[response_bytes] = '\0';
+
+        size_t full_path_size = strlen(maildir_path) + 1 + strlen(response_buffer) + 1;
+        char *full_maildir_path = malloc(full_path_size);
+        if (full_maildir_path == NULL) {
+            perror("malloc for full_maildir_path failed");
+            return 1;
+        }
+
+        snprintf(full_maildir_path, full_path_size, "%s/%s", maildir_path, response_buffer);
+
+        if (deliver_to_maildir(full_maildir_path, email_buffer, email_buffer_size) != 0) {
+            fprintf(stderr, "maildir_deliver failed for path: %s\n", full_maildir_path);
+            free(full_maildir_path);
+            return 1;
+        } else {
+            printf("Delivered to: %s\n", full_maildir_path);
+        }
+
+        free(full_maildir_path);
     }
 
     close(sockfd);
-    free(buffer);
+    free(email_buffer);
 
     return 0;
 }
