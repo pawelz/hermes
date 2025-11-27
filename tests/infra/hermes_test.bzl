@@ -1,6 +1,6 @@
 """Starlark macro for defining hermes integration tests."""
 
-def hermes_test(name, result, data, config = "//tests/config"):
+def hermes_test(name, result, data, config = "@hermes//tests/config"):
     """
     A macro that creates a hermes integration test.
 
@@ -25,14 +25,18 @@ def hermes_test(name, result, data, config = "//tests/config"):
     # 2. Create the sh_test target.
     native.sh_test(
         name = name,
-        srcs = ["//tests/infra:test_runner.sh"],
+        srcs = ["@hermes//tests/infra:test_runner.sh"],
         data = [
             cases_file_name,
-            "//client:hermes_client",
-            "//server/ch/execve/hermes:hermes_server",
+            "@hermes//client:hermes_client",
+            "@hermes//server/ch/execve/hermes:hermes_server",
             config,
             data,
         ],
-        # Rename cases.txt to be at the root for the script to find it.
-        args = ["cp $(location %s) cases.txt && $(location //tests/infra:test_runner.sh)" % cases_file_name],
+        # Pass the locations of the binaries and config to the script.
+        args = [
+            "$(location %s)" % cases_file_name,
+            "$(location @hermes//server/ch/execve/hermes:hermes_server)",
+            "$(location @hermes//client:hermes_client)",
+        ],
     )

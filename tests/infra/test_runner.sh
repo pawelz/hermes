@@ -16,6 +16,12 @@
 
 set -e
 
+CASES_FILE=$1
+HERMES_SERVER_BIN=$2
+HERMES_CLIENT_BIN=$3
+
+shift 3
+
 echo "--- Starting Hermes Test Runner ---"
 
 # Bazel sets TEST_TMPDIR for us to use as a scratch directory.
@@ -27,12 +33,13 @@ MAILDIR_PATH="$TMPDIR/maildir"
 DB_PATH="$TMPDIR/hermes.db"
 LOG_PATH="$TMPDIR/hermes.log"
 
-# The config files are provided as a data dependency.
+# These paths are relative to the workspace root (which is the CWD for the test).
 CONFIG_DIR="tests/config"
+DATA_DIR="tests/data"
 
 # Start the Hermes server binary in the background.
 echo "Starting server..."
-./server/ch/execve/hermes/hermes_server \
+$HERMES_SERVER_BIN \
   --socket-path "$SOCKET_PATH" \
   --database-path "$DB_PATH" \
   --log-file "$LOG_PATH" \
@@ -53,11 +60,11 @@ echo "Server started successfully."
 run_test() {
   email_file=$1
   expected_mailbox=$2
-  input_email_path="tests/data/$email_file"
+  input_email_path="$DATA_DIR/$email_file"
   echo -n "Testing $email_file... "
 
   # Run the client, piping the email to it.
-  < "$input_email_path" ./client/hermes_client "$SOCKET_PATH" "$MAILDIR_PATH"
+  < "$input_email_path" "$HERMES_CLIENT_BIN" "$SOCKET_PATH" "$MAILDIR_PATH"
   
   expected_path="$MAILDIR_PATH/$expected_mailbox"
   
@@ -83,7 +90,7 @@ run_test() {
 # Read test cases from cases.txt and execute them.
 while read -r email_file expected_mailbox; do
   run_test "$email_file" "$expected_mailbox"
-done < cases.txt
+done < "$CASES_FILE"
 
 echo "--- All tests passed! ---"
 exit 0
