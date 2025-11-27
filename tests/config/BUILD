@@ -1,4 +1,7 @@
-exports_files(["BUILD"], visibility = ["//tests:__pkg__"])
+exports_files(
+    ["BUILD"],
+    visibility = ["//visibility:public"],
+)
 
 filegroup(
     name = "config",
