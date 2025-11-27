@@ -19,7 +19,7 @@ def hermes_test(name, result, data, config = "@hermes//tests/config"):
         name = name + "_cases_generator",
         srcs = [data],
         outs = [cases_file_name],
-        cmd = "for f in $(SRCS); do echo \"$$(basename $$f) %s\"; done > $@" % result,
+        cmd = "for f in $(SRCS); do echo \"$$f %s\"; done > $@" % result,
     )
 
     # 2. Create the sh_test target.
@@ -32,11 +32,14 @@ def hermes_test(name, result, data, config = "@hermes//tests/config"):
             "@hermes//server/ch/execve/hermes:hermes_server",
             config,
             data,
+            # Explicitly add the BUILD file as a prerequisite for the $(location) in args.
+            "%s:BUILD" % config.rsplit(":", 1)[0],
         ],
         # Pass the locations of the binaries and config to the script.
         args = [
             "$(location %s)" % cases_file_name,
             "$(location @hermes//server/ch/execve/hermes:hermes_server)",
             "$(location @hermes//client:hermes_client)",
+            "$(location %s:BUILD)" % config.rsplit(":", 1)[0],
         ],
     )

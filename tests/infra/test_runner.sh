@@ -19,8 +19,9 @@ set -e
 CASES_FILE=$1
 HERMES_SERVER_BIN=$2
 HERMES_CLIENT_BIN=$3
+CONFIG_BUILD_FILE=$4
 
-shift 3
+shift 4
 
 echo "--- Starting Hermes Test Runner ---"
 
@@ -33,9 +34,8 @@ MAILDIR_PATH="$TMPDIR/maildir"
 DB_PATH="$TMPDIR/hermes.db"
 LOG_PATH="$TMPDIR/hermes.log"
 
-# These paths are relative to the workspace root (which is the CWD for the test).
-CONFIG_DIR="tests/config"
-DATA_DIR="tests/data"
+# Derive the config directory from the path of its BUILD file.
+CONFIG_DIR=$(dirname "$CONFIG_BUILD_FILE")
 
 # Start the Hermes server binary in the background.
 echo "Starting server..."
@@ -60,7 +60,9 @@ echo "Server started successfully."
 run_test() {
   email_file=$1
   expected_mailbox=$2
-  input_email_path="$DATA_DIR/$email_file"
+  # The genrule in the macro now provides a path relative to the data filegroup's package.
+  # We assume the data filegroup is in a directory named after the test case.
+  input_email_path="$email_file"
   echo -n "Testing $email_file... "
 
   # Run the client, piping the email to it.
