@@ -1,6 +1,6 @@
 """Starlark macro for defining hermes integration tests."""
 
-def hermes_test(name, result, data, config = "@hermes//tests/config", extra_class_path = None):
+def hermes_test(name, result, data, config = "@hermes//tests/config", deps = []):
     """
     A macro that creates a hermes integration test.
 
@@ -9,7 +9,7 @@ def hermes_test(name, result, data, config = "@hermes//tests/config", extra_clas
       result: The expected mailbox for all emails in the data set.
       data: A filegroup containing the email files for this test.
       config: The label of the configuration filegroup to use.
-      extra_class_path: An optional label to a java_library to add to the classpath.
+      deps: A list of extra Java dependencies (e.g., custom classifiers).
     """
 
     # 1. Generate the cases.txt file using a genrule.
@@ -29,9 +29,8 @@ def hermes_test(name, result, data, config = "@hermes//tests/config", extra_clas
         "@hermes//server/ch/execve/hermes:hermes_server",
         config,
         data,
-        # Explicitly add the BUILD file as a prerequisite for the $(location) in args.
         "%s:BUILD" % config.rsplit(":", 1)[0],
-    ]
+    ] + deps
     test_args = [
         "$(location %s)" % cases_file_name,
         "$(location @hermes//server/ch/execve/hermes:hermes_server)",
@@ -39,11 +38,10 @@ def hermes_test(name, result, data, config = "@hermes//tests/config", extra_clas
         "$(location %s:BUILD)" % config.rsplit(":", 1)[0],
     ]
 
-    if extra_class_path:
-        test_data.append(extra_class_path)
-        test_args.append("$(location %s)" % extra_class_path)
+    if deps:
+        # $(locations) expands to a space-separated list of file paths.
+        test_args.append("$(locations %s)" % " ".join(deps))
 
-    # 2. Create the sh_test target.
     native.sh_test(
         name = name,
         srcs = ["@hermes//tests/infra:test_runner.sh"],

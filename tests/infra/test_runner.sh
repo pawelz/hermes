@@ -20,7 +20,7 @@ CASES_FILE=$1
 HERMES_SERVER_BIN=$2
 HERMES_CLIENT_BIN=$3
 CONFIG_BUILD_FILE=$4
-EXTRA_CLASS_PATH=$5
+EXTRA_CLASS_PATH_JARS=$5
 
 if [ -n "$5" ]; then
   shift 5
@@ -43,7 +43,10 @@ LOG_PATH="$TMPDIR/hermes.log"
 CONFIG_DIR=$(dirname "$CONFIG_BUILD_FILE")
 
 echo "Starting server..."
-if [ -n "$EXTRA_CLASS_PATH" ]; then
+if [ -n "$EXTRA_CLASS_PATH_JARS" ]; then
+  # The fifth argument is a space-separated list of JARs.
+  # We replace spaces with colons to create a valid Java classpath.
+  EXTRA_CLASS_PATH=$(echo "$EXTRA_CLASS_PATH_JARS" | tr ' ' ':')
   # Start the server with the extra classpath flag.
   $HERMES_SERVER_BIN \
     --socket-path "$SOCKET_PATH" \
