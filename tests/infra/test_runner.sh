@@ -20,8 +20,13 @@ CASES_FILE=$1
 HERMES_SERVER_BIN=$2
 HERMES_CLIENT_BIN=$3
 CONFIG_BUILD_FILE=$4
+EXTRA_CLASS_PATH=$5
 
-shift 4
+if [ -n "$5" ]; then
+  shift 5
+else
+  shift 4
+fi
 
 echo "--- Starting Hermes Test Runner ---"
 
@@ -37,13 +42,23 @@ LOG_PATH="$TMPDIR/hermes.log"
 # Derive the config directory from the path of its BUILD file.
 CONFIG_DIR=$(dirname "$CONFIG_BUILD_FILE")
 
-# Start the Hermes server binary in the background.
 echo "Starting server..."
-$HERMES_SERVER_BIN \
-  --socket-path "$SOCKET_PATH" \
-  --database-path "$DB_PATH" \
-  --log-file "$LOG_PATH" \
-  --config-dir "$CONFIG_DIR" &
+if [ -n "$EXTRA_CLASS_PATH" ]; then
+  # Start the server with the extra classpath flag.
+  $HERMES_SERVER_BIN \
+    --socket-path "$SOCKET_PATH" \
+    --database-path "$DB_PATH" \
+    --log-file "$LOG_PATH" \
+    --config-dir "$CONFIG_DIR" \
+    --wrapper_script_flag=--main_advice_classpath="$EXTRA_CLASS_PATH" &
+else
+  # Start the server normally.
+  $HERMES_SERVER_BIN \
+    --socket-path "$SOCKET_PATH" \
+    --database-path "$DB_PATH" \
+    --log-file "$LOG_PATH" \
+    --config-dir "$CONFIG_DIR" &
+fi
 
 SERVER_PID=$!
 
