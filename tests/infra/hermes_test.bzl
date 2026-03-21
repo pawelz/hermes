@@ -1,5 +1,7 @@
 """Starlark macro for defining hermes integration tests."""
 
+load("@rules_shell//shell:sh_test.bzl", "sh_test")
+
 def hermes_test(name, result, data, config = "@hermes//tests/config", deps = []):
     """
     A macro that creates a hermes integration test.
@@ -42,7 +44,7 @@ def hermes_test(name, result, data, config = "@hermes//tests/config", deps = [])
         # $(locations) expands to a space-separated list of file paths.
         test_args.append("$(locations %s)" % " ".join(deps))
 
-    native.sh_test(
+    sh_test(
         name = name,
         srcs = ["@hermes//tests/infra:test_runner.sh"],
         data = test_data,

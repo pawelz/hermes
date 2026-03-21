@@ -29,3 +29,6 @@ bazel-*
 # runtime litter
 *.sock
 *.db
+
+# VS Code garbage
+*.code-workspace
