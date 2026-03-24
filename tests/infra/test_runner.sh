@@ -78,13 +78,10 @@ echo "Server started successfully."
 run_test() {
   email_file=$1
   expected_mailbox=$2
-  # The genrule in the macro now provides a path relative to the data filegroup's package.
-  # We assume the data filegroup is in a directory named after the test case.
-  input_email_path="$email_file"
   echo -n "Testing $email_file... "
 
   # Run the client, piping the email to it.
-  < "$input_email_path" "$HERMES_CLIENT_BIN" "$SOCKET_PATH" "$MAILDIR_PATH"
+  < "$email_file" "$HERMES_CLIENT_BIN" "$SOCKET_PATH" "$MAILDIR_PATH"
   
   expected_path="$MAILDIR_PATH/$expected_mailbox"
   
@@ -98,11 +95,11 @@ run_test() {
   delivered_file="$expected_path/new/$newest_file_name"
 
   # Check if the content of the delivered email is identical to the input.
-  if diff -q "$input_email_path" "$delivered_file"; then
+  if diff -q "$email_file" "$delivered_file"; then
     echo "OK"    
   else
     echo "FAIL: Content of delivered email does not match input."
-    diff "$input_email_path" "$delivered_file"
+    diff "$email_file" "$delivered_file"
     exit 1
   fi
 }
