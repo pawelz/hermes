@@ -75,9 +75,17 @@ while [ ! -S "$SOCKET_PATH" ]; do
 done
 echo "Server started successfully."
 
+if [ "$(uname)" = "Darwin" ]; then
+  SHASUM_CMD="shasum -a 512"
+else
+  SHASUM_CMD="sha512sum"
+fi
+
 run_test() {
   email_file=$1
   expected_mailbox=$2
+  # The output of shasum and sha512sum is "HASH  FILENAME". We only want the hash.
+  content_hash="$($SHASUM_CMD "${email_file}" | awk '{print $1}')"
   echo -n "Testing $email_file... "
 
   # Run the client, piping the email to it.
@@ -85,21 +93,22 @@ run_test() {
   
   expected_path="$MAILDIR_PATH/$expected_mailbox"
   
-  # Find the most recently delivered email file in the 'new' subdirectory
-  newest_file_name=$(ls -t "$expected_path/new" 2>/dev/null | head -n 1)
-  
-  if [ -z "$newest_file_name" ]; then
-    echo "FAIL: No email file found in $expected_path/new."
+  delivered_hash_and_path=$(find "${MAILDIR_PATH}" -type f | xargs $SHASUM_CMD | grep "^${content_hash}")
+  if [ "$?" != "0" ]; then
+    echo "FAIL: Email not delivered to any path under the Maildir"
     exit 1
   fi
-  delivered_file="$expected_path/new/$newest_file_name"
 
-  # Check if the content of the delivered email is identical to the input.
-  if diff -q "$email_file" "$delivered_file"; then
+  # The second field of delivered_hash_and_path has a form: MAILDIR_PATH/maildir/new/file.eml
+  # The double dirname strips the /new/file.eml part. The ${actual_path#$MAILDIR_PATH/} strils
+  # the prefix, leaving just the mailbox.
+  actual_path=$(dirname $(dirname $(echo "${delivered_hash_and_path}" | awk '{print $2}')))
+  actual_mailbox=${actual_path#$MAILDIR_PATH/}
+
+  if [ "${expected_mailbox}" = "${actual_mailbox}" ]; then
     echo "OK"    
   else
-    echo "FAIL: Content of delivered email does not match input."
-    diff "$email_file" "$delivered_file"
+    echo "FAIL: expected '${expected_mailbox}' actual '${actual_mailbox}'"
     exit 1
   fi
 }
