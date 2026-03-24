@@ -86,10 +86,10 @@ run_test() {
   expected_mailbox=$2
   # The output of shasum and sha512sum is "HASH  FILENAME". We only want the hash.
   content_hash="$($SHASUM_CMD "${email_file}" | awk '{print $1}')"
-  echo "Testing $email_file... "
+  printf "Testing $email_file... "
 
   # Run the client, piping the email to it.
-  < "$email_file" "$HERMES_CLIENT_BIN" "$SOCKET_PATH" "$MAILDIR_PATH"
+  < "$email_file" > /dev/null "$HERMES_CLIENT_BIN" "$SOCKET_PATH" "$MAILDIR_PATH"
   
   expected_path="$MAILDIR_PATH/$expected_mailbox"
   
