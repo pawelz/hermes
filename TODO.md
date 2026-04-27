@@ -17,3 +17,10 @@ This could also support a dry-run mode in which Hermes just prints a table of
 
 If there is a typo in the class path in the config, the test will hang until
 timeout. Instead the test should fail meaningfully.
+
+# User docs
+
+Write up README.md explaining what this is and how to use it.
+
+It would also be good to provide an example of a "private" repository
+containing private configs and classifiers.
