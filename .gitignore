@@ -32,3 +32,6 @@ bazel-*
 
 # VS Code garbage
 *.code-workspace
+
+# vim
+*.swp
