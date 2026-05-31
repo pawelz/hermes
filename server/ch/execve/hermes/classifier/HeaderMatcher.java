@@ -5,7 +5,9 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import jakarta.mail.Message;
+import jakarta.mail.internet.MimeUtility;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
@@ -51,7 +53,14 @@ public class HeaderMatcher implements Classifier {
             }
             for (Pattern pattern : rule.patterns()) {
                 for (String headerValue : headerValues) {
-                    if (pattern.matcher(headerValue).find()) {
+                    String decodedValue;
+                    try {
+                        decodedValue = MimeUtility.decodeText(headerValue);
+                    } catch (UnsupportedEncodingException e) {
+                        logger.warn("Could not decode header value: {}", headerValue, e);
+                        decodedValue = headerValue;
+                    }
+                    if (pattern.matcher(decodedValue).find()) {
                         return true;
                     }
                 }
